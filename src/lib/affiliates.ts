@@ -26,7 +26,7 @@ const AFFILIATE_CONFIG: Record<string, AffiliateConfig> = {
   },
   ebay: {
     param: "campid",
-    value: "5338765432", // ← REPLACE with your eBay Partner Network campaign ID
+    value: "5339168270", // ← REPLACE with your eBay Partner Network campaign ID
   },
   walmart: {
     param: "wmlspartner",
