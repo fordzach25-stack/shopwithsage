@@ -22,7 +22,7 @@ interface AffiliateConfig {
 const AFFILIATE_CONFIG: Record<string, AffiliateConfig> = {
   amazon: {
     param: "tag",
-    value: "dealsage-20", // ← REPLACE with your Amazon Associates tag
+    value: "shopwithsag08-20", // ← REPLACE with your Amazon Associates tag
   },
   ebay: {
     param: "campid",
