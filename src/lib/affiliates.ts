@@ -34,7 +34,7 @@ const AFFILIATE_CONFIG: Record<string, AffiliateConfig> = {
   },
   bestbuy: {
     param: "cjdata",
-    value: "REPLACE_WITH_YOUR_ENCODED_CJDATA", // ← REPLACE with your Best Buy cjdata
+    value: "7494941", // ← Best Buy CJ Affiliate PID
   },
 };
 
