@@ -3,7 +3,7 @@ import { getAffiliateUrl } from "./affiliates";
 import { findCoupons, type CouponResult } from "./coupons";
 
 // --- Startup: log SERPAPI_KEY availability ---
-console.log("[DealSage] SERPAPI_KEY present:", !!process.env.SERPAPI_KEY, "length:", process.env.SERPAPI_KEY?.length || 0);
+console.log("[DealSage] SERPAPI_KEY present:", !!process.env["SERPAPI_KEY"], "length:", process.env["SERPAPI_KEY"]?.length || 0);
 
 // --- Types ---
 
@@ -270,7 +270,7 @@ interface SerpAPIShoppingResult {
 async function scrapeWithSerpAPI(
   url: string,
 ): Promise<{ product: ScrapedProduct; comparisonPrices: ComparisonPrice[] } | null> {
-  let apiKey = process.env.SERPAPI_KEY;
+  let apiKey = process.env["SERPAPI_KEY"];
   if (!apiKey) {
     // Fallback: try reading from .env file
     try {
