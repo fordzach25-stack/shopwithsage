@@ -176,58 +176,6 @@ function ResultsPage() {
               </div>
             </div>
 
-            {/* Price breakdown */}
-            <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200/60">
-              <h2 className="text-lg font-semibold text-gray-900">
-                Price Breakdown
-              </h2>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                <div className="rounded-lg border border-teal-200 bg-teal-50 p-4">
-                  <p className="text-sm text-teal-600 font-medium">Current Price</p>
-                  <p className="mt-1 text-3xl font-bold text-teal-700">
-                    {product.currentPrice !== null
-                      ? formatPrice(product.currentPrice, product.currency)
-                      : "N/A"}
-                  </p>
-                  <p className="text-xs text-teal-500 mt-0.5">Best price at {product.retailer}</p>
-                  {product.originalRetailer && 
-                   product.originalRetailer.toLowerCase() !== product.retailer.toLowerCase() && (
-                    <a
-                      href={product.originalUrl}
-                      target="_blank"
-                      rel="nofollow noopener sponsored"
-                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
-                    >
-                      Buy on {product.originalRetailer} instead
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M7 17L17 7" />
-                        <path d="M7 7h10v10" />
-                      </svg>
-                    </a>
-                  )}
-                </div>
-                {product.wasPrice !== null && (
-                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                    <p className="text-sm text-gray-500 font-medium">Was Price</p>
-                    <p className="mt-1 text-3xl font-bold text-gray-400 line-through">
-                      {formatPrice(product.wasPrice, product.currency)}
-                    </p>
-                    <p className="text-xs text-gray-400 mt-0.5">reference price</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Savings highlight */}
-              {product.currentPrice !== null && product.wasPrice !== null && product.currentPrice < product.wasPrice && (
-                <div className="mt-4 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
-                  <p className="text-sm font-medium text-emerald-700">
-                    You save {formatPrice(product.wasPrice - product.currentPrice, product.currency)} (
-                    {fakeDiscount.discountPercent}% off)
-                  </p>
-                </div>
-              )}
-            </div>
-
             {/* Compare Prices */}
             {comparisonPrices.length > 0 && (
               <div className="rounded-xl bg-white p-6 shadow-sm ring-1 ring-gray-200/60">
