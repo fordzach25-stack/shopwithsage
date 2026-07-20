@@ -81,6 +81,7 @@ function ErrorResults({ error }: { error: Error }) {
 function ResultsPage() {
   const analysis: ProductAnalysis = Route.useLoaderData();
   const { product, fakeDiscount, reviewSummary, cashback, coupons, stackedSavings, comparisonPrices, pricePrediction, analysisNote } = analysis;
+  const bestComparison = comparisonPrices.find((cp) => cp.isBest);
 
   return (
     <div className="flex min-h-dvh flex-col bg-gray-50">
@@ -157,6 +158,20 @@ function ResultsPage() {
                       )}
                     </div>
                   )}
+
+                  {/* Buy Now CTA */}
+                  <a
+                    href={product.url}
+                    target="_blank"
+                    rel="nofollow noopener sponsored"
+                    className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-500 px-6 py-3 text-base font-bold text-white shadow-lg shadow-teal-500/25 transition hover:bg-teal-600 hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98] sm:w-auto sm:justify-start"
+                  >
+                    Buy on {product.retailer}
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17L17 7" />
+                      <path d="M7 7h10v10" />
+                    </svg>
+                  </a>
                 </div>
               </div>
             </div>
@@ -175,6 +190,18 @@ function ResultsPage() {
                       : "N/A"}
                   </p>
                   <p className="text-xs text-teal-500 mt-0.5">at {product.retailer}</p>
+                  <a
+                    href={product.url}
+                    target="_blank"
+                    rel="nofollow noopener sponsored"
+                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+                  >
+                    Buy Now
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M7 17L17 7" />
+                      <path d="M7 7h10v10" />
+                    </svg>
+                  </a>
                 </div>
                 {product.wasPrice !== null && (
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
@@ -266,7 +293,7 @@ function ResultsPage() {
                                   : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
                               }`}
                             >
-                              View Deal
+                              {item.isBest ? "Buy Now" : "View"}
                               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                                 <path d="M7 17L17 7" />
                                 <path d="M7 7h10v10" />
@@ -321,7 +348,7 @@ function ResultsPage() {
                               : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
                           }`}
                         >
-                          View Deal
+                          {item.isBest ? "Buy Now" : "View"}
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M7 17L17 7" />
                             <path d="M7 7h10v10" />
@@ -617,6 +644,7 @@ function ResultsPage() {
 
                 {/* Stack Your Savings summary */}
                 {stackedSavings && (
+                  <>
                   <div className="mt-4 rounded-lg border-2 border-teal-300 bg-gradient-to-br from-teal-50 to-emerald-50 p-4">
                     <h4 className="text-sm font-bold text-teal-800 flex items-center gap-1.5">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -663,6 +691,23 @@ function ResultsPage() {
                       </div>
                     </dl>
                   </div>
+
+
+                  {bestComparison && (
+                    <a
+                      href={bestComparison.url}
+                      target="_blank"
+                      rel="nofollow noopener sponsored"
+                      className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-500 px-6 py-3.5 text-base font-bold text-white shadow-lg shadow-teal-500/25 transition hover:from-teal-600 hover:to-emerald-600 hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98]"
+                    >
+                      Get This Deal
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 17L17 7" />
+                        <path d="M7 7h10v10" />
+                      </svg>
+                    </a>
+                  )}
+                </>
                 )}
 
                 {/* Premium CTA */}
