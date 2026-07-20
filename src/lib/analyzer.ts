@@ -284,7 +284,7 @@ function buildRetailerSearchUrl(retailer: string, productTitle: string): string 
 
 // --- SerpAPI eBay listing resolver ---
 
-async function getEbayListingUrl(productTitle: string): Promise<string | null> {
+async function getEbayListingUrl(productTitle: string, targetPrice?: number): Promise<string | null> {
   const apiKey = process.env["SERPAPI_KEY"];
   if (!apiKey) return null;
 
@@ -300,13 +300,41 @@ async function getEbayListingUrl(productTitle: string): Promise<string | null> {
     }
 
     const data = (await response.json()) as {
-      organic_results?: Array<{ link?: string; title?: string }>;
+      organic_results?: Array<{
+        link?: string;
+        title?: string;
+        price?: { raw?: string; extracted?: number };
+      }>;
     };
     const results = data.organic_results;
 
     if (!results || results.length === 0) {
       console.error("[DealSage] eBay SerpAPI returned empty organic_results");
       return null;
+    }
+
+    // Price-aware matching: if targetPrice is provided, find a result within ±5%
+    if (targetPrice !== undefined && targetPrice > 0) {
+      const tolerance = targetPrice * 0.05;
+      for (const result of results) {
+        const resultPrice = result.price?.extracted;
+        if (resultPrice !== undefined && resultPrice > 0) {
+          const diff = Math.abs(resultPrice - targetPrice);
+          if (diff <= tolerance) {
+            const listingUrl = result.link;
+            if (listingUrl) {
+              console.error(
+                `[DealSage] eBay price match found: ${resultPrice.toFixed(2)} vs target ${targetPrice.toFixed(2)} (diff: ${diff.toFixed(2)})`,
+              );
+              return listingUrl;
+            }
+          }
+        }
+      }
+      // No price match found — fall back to top result
+      console.error(
+        `[DealSage] eBay: no price match for ${targetPrice.toFixed(2)}, using top result`,
+      );
     }
 
     const listingUrl = results[0].link;
@@ -325,7 +353,7 @@ async function getEbayListingUrl(productTitle: string): Promise<string | null> {
 
 // --- SerpAPI Walmart listing resolver ---
 
-async function getWalmartListingUrl(productTitle: string): Promise<string | null> {
+async function getWalmartListingUrl(productTitle: string, targetPrice?: number): Promise<string | null> {
   const apiKey = process.env["SERPAPI_KEY"];
   if (!apiKey) return null;
 
@@ -341,13 +369,41 @@ async function getWalmartListingUrl(productTitle: string): Promise<string | null
     }
 
     const data = (await response.json()) as {
-      organic_results?: Array<{ product_page_url?: string; title?: string }>;
+      organic_results?: Array<{
+        product_page_url?: string;
+        title?: string;
+        primary_offer?: { offer_price?: number; offer_id?: string };
+      }>;
     };
     const results = data.organic_results;
 
     if (!results || results.length === 0) {
       console.error("[DealSage] Walmart SerpAPI returned empty organic_results");
       return null;
+    }
+
+    // Price-aware matching: if targetPrice is provided, find a result within ±5%
+    if (targetPrice !== undefined && targetPrice > 0) {
+      const tolerance = targetPrice * 0.05;
+      for (const result of results) {
+        const resultPrice = result.primary_offer?.offer_price;
+        if (resultPrice !== undefined && resultPrice > 0) {
+          const diff = Math.abs(resultPrice - targetPrice);
+          if (diff <= tolerance) {
+            const listingUrl = result.product_page_url;
+            if (listingUrl) {
+              console.error(
+                `[DealSage] Walmart price match found: ${resultPrice.toFixed(2)} vs target ${targetPrice.toFixed(2)} (diff: ${diff.toFixed(2)})`,
+              );
+              return listingUrl;
+            }
+          }
+        }
+      }
+      // No price match found — fall back to top result
+      console.error(
+        `[DealSage] Walmart: no price match for ${targetPrice.toFixed(2)}, using top result`,
+      );
     }
 
     const listingUrl = results[0].product_page_url;
@@ -543,19 +599,27 @@ async function scrapeWithSerpAPI(
   // Resolve real eBay listing URLs for any eBay comparison entries.
   // Google Shopping often returns an eBay search-results URL; we replace it
   // with the actual /itm/ listing from SerpAPI's eBay engine.
+  // Pass each entry's price so the linked listing matches the shown price.
   if (comparisonPrices.length > 0) {
     const ebayEntries = comparisonPrices.filter((cp) =>
       cp.retailer.toLowerCase().includes("ebay"),
     );
     if (ebayEntries.length > 0) {
-      const realEbayUrl = await getEbayListingUrl(product.title);
-      if (realEbayUrl) {
-        const affiliateEbayUrl = getAffiliateUrl(realEbayUrl, "eBay");
-        for (const entry of ebayEntries) {
-          entry.url = affiliateEbayUrl;
+      let replacedCount = 0;
+      for (const entry of ebayEntries) {
+        try {
+          const realEbayUrl = await getEbayListingUrl(product.title, entry.price);
+          if (realEbayUrl) {
+            entry.url = getAffiliateUrl(realEbayUrl, "eBay");
+            replacedCount++;
+          }
+        } catch {
+          // Individual entry resolution failed — keep existing URL
         }
+      }
+      if (replacedCount > 0) {
         console.error(
-          `[DealSage] Replaced ${ebayEntries.length} eBay comparison URL(s) with real listing`,
+          `[DealSage] Replaced ${replacedCount}/${ebayEntries.length} eBay comparison URL(s) with price-matched listings`,
         );
       }
     }
@@ -564,19 +628,27 @@ async function scrapeWithSerpAPI(
   // Resolve real Walmart listing URLs for any Walmart comparison entries.
   // Google Shopping often returns a Walmart search-results URL; we replace it
   // with the actual /ip/ listing from SerpAPI's Walmart engine.
+  // Pass each entry's price so the linked listing matches the shown price.
   if (comparisonPrices.length > 0) {
     const walmartEntries = comparisonPrices.filter((cp) =>
       cp.retailer.toLowerCase().includes("walmart"),
     );
     if (walmartEntries.length > 0) {
-      const realWalmartUrl = await getWalmartListingUrl(product.title);
-      if (realWalmartUrl) {
-        const affiliateWalmartUrl = getAffiliateUrl(realWalmartUrl, "Walmart");
-        for (const entry of walmartEntries) {
-          entry.url = affiliateWalmartUrl;
+      let replacedCount = 0;
+      for (const entry of walmartEntries) {
+        try {
+          const realWalmartUrl = await getWalmartListingUrl(product.title, entry.price);
+          if (realWalmartUrl) {
+            entry.url = getAffiliateUrl(realWalmartUrl, "Walmart");
+            replacedCount++;
+          }
+        } catch {
+          // Individual entry resolution failed — keep existing URL
         }
+      }
+      if (replacedCount > 0) {
         console.error(
-          `[DealSage] Replaced ${walmartEntries.length} Walmart comparison URL(s) with real listing`,
+          `[DealSage] Replaced ${replacedCount}/${walmartEntries.length} Walmart comparison URL(s) with price-matched listings`,
         );
       }
     }
