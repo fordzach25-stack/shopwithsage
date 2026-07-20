@@ -323,6 +323,47 @@ async function getEbayListingUrl(productTitle: string): Promise<string | null> {
   }
 }
 
+// --- SerpAPI Walmart listing resolver ---
+
+async function getWalmartListingUrl(productTitle: string): Promise<string | null> {
+  const apiKey = process.env["SERPAPI_KEY"];
+  if (!apiKey) return null;
+
+  try {
+    const response = await fetch(
+      `https://serpapi.com/search?engine=walmart&query=${encodeURIComponent(productTitle)}&api_key=${apiKey}`,
+      { signal: AbortSignal.timeout(10000) },
+    );
+
+    if (!response.ok) {
+      console.error(`[DealSage] Walmart SerpAPI returned status ${response.status}`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      organic_results?: Array<{ product_page_url?: string; title?: string }>;
+    };
+    const results = data.organic_results;
+
+    if (!results || results.length === 0) {
+      console.error("[DealSage] Walmart SerpAPI returned empty organic_results");
+      return null;
+    }
+
+    const listingUrl = results[0].product_page_url;
+    if (!listingUrl) {
+      console.error("[DealSage] Walmart SerpAPI first result has no product_page_url field");
+      return null;
+    }
+
+    console.error(`[DealSage] Resolved Walmart listing: ${listingUrl.slice(0, 80)}`);
+    return listingUrl;
+  } catch (err) {
+    console.error(`[DealSage] Walmart SerpAPI error: ${(err as Error).message}`);
+    return null;
+  }
+}
+
 // --- Scraper: SerpAPI Google Shopping ---
 
 interface SerpAPIShoppingResult {
@@ -515,6 +556,27 @@ async function scrapeWithSerpAPI(
         }
         console.error(
           `[DealSage] Replaced ${ebayEntries.length} eBay comparison URL(s) with real listing`,
+        );
+      }
+    }
+  }
+
+  // Resolve real Walmart listing URLs for any Walmart comparison entries.
+  // Google Shopping often returns a Walmart search-results URL; we replace it
+  // with the actual /ip/ listing from SerpAPI's Walmart engine.
+  if (comparisonPrices.length > 0) {
+    const walmartEntries = comparisonPrices.filter((cp) =>
+      cp.retailer.toLowerCase().includes("walmart"),
+    );
+    if (walmartEntries.length > 0) {
+      const realWalmartUrl = await getWalmartListingUrl(product.title);
+      if (realWalmartUrl) {
+        const affiliateWalmartUrl = getAffiliateUrl(realWalmartUrl, "Walmart");
+        for (const entry of walmartEntries) {
+          entry.url = affiliateWalmartUrl;
+        }
+        console.error(
+          `[DealSage] Replaced ${walmartEntries.length} Walmart comparison URL(s) with real listing`,
         );
       }
     }
