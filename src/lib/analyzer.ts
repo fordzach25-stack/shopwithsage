@@ -275,7 +275,8 @@ function buildRetailerSearchUrl(retailer: string, productTitle: string): string 
   } else if (retailerLower.includes("aliexpress")) {
     url = `https://www.aliexpress.com/wholesale?SearchText=${encoded}`;
   } else {
-    url = `https://www.google.com/search?q=${encoded}`;
+    // Unknown retailer — no affiliate program, don't link to Google
+    return "";
   }
 
   return getAffiliateUrl(url, retailer);

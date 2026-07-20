@@ -234,22 +234,26 @@ function ResultsPage() {
                             </span>
                           </td>
                           <td className="py-3 text-right">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="nofollow noopener sponsored"
-                              className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
-                                item.isBest
-                                  ? "bg-teal-500 text-white shadow-sm shadow-teal-500/25 hover:bg-teal-600"
-                                  : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
-                              }`}
-                            >
-                              {item.isBest ? "Buy Now" : "View"}
-                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M7 17L17 7" />
-                                <path d="M7 7h10v10" />
-                              </svg>
-                            </a>
+                            {item.url ? (
+                              <a
+                                href={item.url}
+                                target="_blank"
+                                rel="nofollow noopener sponsored"
+                                className={`inline-flex items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-semibold transition ${
+                                  item.isBest
+                                    ? "bg-teal-500 text-white shadow-sm shadow-teal-500/25 hover:bg-teal-600"
+                                    : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
+                                }`}
+                              >
+                                {item.isBest ? "Buy Now" : "View"}
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M7 17L17 7" />
+                                  <path d="M7 7h10v10" />
+                                </svg>
+                              </a>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -289,22 +293,26 @@ function ResultsPage() {
                         >
                           {formatPrice(item.price, item.currency)}
                         </span>
-                        <a
-                          href={item.url}
-                          target="_blank"
-                          rel="nofollow noopener sponsored"
-                          className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
-                            item.isBest
-                              ? "bg-teal-500 text-white shadow-sm shadow-teal-500/25 hover:bg-teal-600"
-                              : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
-                          }`}
-                        >
-                          {item.isBest ? "Buy Now" : "View"}
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M7 17L17 7" />
-                            <path d="M7 7h10v10" />
-                          </svg>
-                        </a>
+                        {item.url ? (
+                          <a
+                            href={item.url}
+                            target="_blank"
+                            rel="nofollow noopener sponsored"
+                            className={`inline-flex items-center gap-1 rounded-lg px-4 py-2 text-sm font-semibold transition ${
+                              item.isBest
+                                ? "bg-teal-500 text-white shadow-sm shadow-teal-500/25 hover:bg-teal-600"
+                                : "border border-gray-300 bg-white text-gray-700 hover:border-teal-300 hover:text-teal-600"
+                            }`}
+                          >
+                            {item.isBest ? "Buy Now" : "View"}
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M7 17L17 7" />
+                              <path d="M7 7h10v10" />
+                            </svg>
+                          </a>
+                        ) : (
+                          <span className="text-sm text-gray-400">—</span>
+                        )}
                       </div>
                     </div>
                   ))}
