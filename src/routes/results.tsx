@@ -189,19 +189,22 @@ function ResultsPage() {
                       ? formatPrice(product.currentPrice, product.currency)
                       : "N/A"}
                   </p>
-                  <p className="text-xs text-teal-500 mt-0.5">at {product.retailer}</p>
-                  <a
-                    href={product.originalUrl}
-                    target="_blank"
-                    rel="nofollow noopener sponsored"
-                    className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
-                  >
-                    Buy Now
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M7 17L17 7" />
-                      <path d="M7 7h10v10" />
-                    </svg>
-                  </a>
+                  <p className="text-xs text-teal-500 mt-0.5">Best price at {product.retailer}</p>
+                  {product.originalRetailer && 
+                   product.originalRetailer.toLowerCase() !== product.retailer.toLowerCase() && (
+                    <a
+                      href={product.originalUrl}
+                      target="_blank"
+                      rel="nofollow noopener sponsored"
+                      className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
+                    >
+                      Buy on {product.originalRetailer} instead
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M7 17L17 7" />
+                        <path d="M7 7h10v10" />
+                      </svg>
+                    </a>
+                  )}
                 </div>
                 {product.wasPrice !== null && (
                   <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
