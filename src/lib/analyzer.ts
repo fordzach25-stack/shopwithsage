@@ -282,6 +282,47 @@ function buildRetailerSearchUrl(retailer: string, productTitle: string): string 
   return getAffiliateUrl(url, retailer);
 }
 
+// --- SerpAPI eBay listing resolver ---
+
+async function getEbayListingUrl(productTitle: string): Promise<string | null> {
+  const apiKey = process.env["SERPAPI_KEY"];
+  if (!apiKey) return null;
+
+  try {
+    const response = await fetch(
+      `https://serpapi.com/search?engine=ebay&_nkw=${encodeURIComponent(productTitle)}&api_key=${apiKey}`,
+      { signal: AbortSignal.timeout(10000) },
+    );
+
+    if (!response.ok) {
+      console.error(`[DealSage] eBay SerpAPI returned status ${response.status}`);
+      return null;
+    }
+
+    const data = (await response.json()) as {
+      organic_results?: Array<{ link?: string; title?: string }>;
+    };
+    const results = data.organic_results;
+
+    if (!results || results.length === 0) {
+      console.error("[DealSage] eBay SerpAPI returned empty organic_results");
+      return null;
+    }
+
+    const listingUrl = results[0].link;
+    if (!listingUrl) {
+      console.error("[DealSage] eBay SerpAPI first result has no link field");
+      return null;
+    }
+
+    console.error(`[DealSage] Resolved eBay listing: ${listingUrl.slice(0, 80)}`);
+    return listingUrl;
+  } catch (err) {
+    console.error(`[DealSage] eBay SerpAPI error: ${(err as Error).message}`);
+    return null;
+  }
+}
+
 // --- Scraper: SerpAPI Google Shopping ---
 
 interface SerpAPIShoppingResult {
@@ -456,6 +497,27 @@ async function scrapeWithSerpAPI(
       }
     }
     comparisonPrices[bestIdx].isBest = true;
+  }
+
+  // Resolve real eBay listing URLs for any eBay comparison entries.
+  // Google Shopping often returns an eBay search-results URL; we replace it
+  // with the actual /itm/ listing from SerpAPI's eBay engine.
+  if (comparisonPrices.length > 0) {
+    const ebayEntries = comparisonPrices.filter((cp) =>
+      cp.retailer.toLowerCase().includes("ebay"),
+    );
+    if (ebayEntries.length > 0) {
+      const realEbayUrl = await getEbayListingUrl(product.title);
+      if (realEbayUrl) {
+        const affiliateEbayUrl = getAffiliateUrl(realEbayUrl, "eBay");
+        for (const entry of ebayEntries) {
+          entry.url = affiliateEbayUrl;
+        }
+        console.error(
+          `[DealSage] Replaced ${ebayEntries.length} eBay comparison URL(s) with real listing`,
+        );
+      }
+    }
   }
 
   console.error(
