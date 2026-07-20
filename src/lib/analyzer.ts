@@ -41,6 +41,8 @@ export interface ScrapedProduct {
   reviews: ReviewSample[];
   source: "scraped" | "demo";
   url: string;
+  originalUrl: string;
+  originalRetailer: string;
 }
 
 export interface FakeDiscountAnalysis {
@@ -251,6 +253,34 @@ function extractProductQuery(url: string): string {
   }
 }
 
+// --- Build direct retailer search URLs for comparison prices ---
+
+function buildRetailerSearchUrl(retailer: string, productTitle: string): string {
+  const encoded = encodeURIComponent(productTitle);
+  const retailerLower = retailer.toLowerCase().replace(/\s+/g, "");
+  let url: string;
+
+  if (retailerLower.includes("amazon")) {
+    url = `https://www.amazon.com/s?k=${encoded}`;
+  } else if (retailerLower.includes("ebay")) {
+    url = `https://www.ebay.com/sch/i.html?_nkw=${encoded}`;
+  } else if (retailerLower.includes("walmart")) {
+    url = `https://www.walmart.com/search?q=${encoded}`;
+  } else if (retailerLower.includes("target")) {
+    url = `https://www.target.com/s?searchTerm=${encoded}`;
+  } else if (retailerLower.includes("bestbuy")) {
+    url = `https://www.bestbuy.com/site/searchpage.jsp?st=${encoded}`;
+  } else if (retailerLower.includes("etsy")) {
+    url = `https://www.etsy.com/search?q=${encoded}`;
+  } else if (retailerLower.includes("aliexpress")) {
+    url = `https://www.aliexpress.com/wholesale?SearchText=${encoded}`;
+  } else {
+    url = `https://www.google.com/search?q=${encoded}`;
+  }
+
+  return getAffiliateUrl(url, retailer);
+}
+
 // --- Scraper: SerpAPI Google Shopping ---
 
 interface SerpAPIShoppingResult {
@@ -375,6 +405,8 @@ async function scrapeWithSerpAPI(
     reviews: [],
     source: "scraped",
     url,
+    originalUrl: url,
+    originalRetailer: detectRetailer(url),
   };
 
   // Build comparison prices from results #2–6
@@ -394,8 +426,7 @@ async function scrapeWithSerpAPI(
     const price = parseSerpPrice(r);
     if (price === null || price <= 0) continue;
 
-    const rLink = r.link || r.product_link || "";
-    const affiliateUrl = rLink ? getAffiliateUrl(rLink, rRetailer) : "";
+    const affiliateUrl = buildRetailerSearchUrl(rRetailer, product.title);
 
     let condition: ComparisonPrice["condition"] = "New";
     if (r.condition) {
@@ -990,6 +1021,8 @@ async function scrapeWithAgentBrowser(
     reviews,
     source: "scraped",
     url,
+    originalUrl: url,
+    originalRetailer: retailer,
   };
 }
 
@@ -1255,10 +1288,12 @@ function generateDemoData(url: string): ScrapedProduct {
     ],
     source: "demo",
     url,
+    originalUrl: url,
+    originalRetailer: retailer,
   };
 
   const demoData = demoProducts[retailer] || {};
-  return { ...defaults, ...demoData, retailer, source: "demo" as const, url };
+  return { ...defaults, ...demoData, retailer, source: "demo" as const, url, originalUrl: url, originalRetailer: retailer };
 }
 
 // --- Generate comparison prices with affiliate links ---

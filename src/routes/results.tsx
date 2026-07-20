@@ -161,12 +161,12 @@ function ResultsPage() {
 
                   {/* Buy Now CTA */}
                   <a
-                    href={product.url}
+                    href={product.originalUrl}
                     target="_blank"
                     rel="nofollow noopener sponsored"
                     className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-teal-500 px-6 py-3 text-base font-bold text-white shadow-lg shadow-teal-500/25 transition hover:bg-teal-600 hover:shadow-xl hover:shadow-teal-500/30 active:scale-[0.98] sm:w-auto sm:justify-start"
                   >
-                    Buy on {product.retailer}
+                    Buy on {product.originalRetailer}
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M7 17L17 7" />
                       <path d="M7 7h10v10" />
@@ -191,7 +191,7 @@ function ResultsPage() {
                   </p>
                   <p className="text-xs text-teal-500 mt-0.5">at {product.retailer}</p>
                   <a
-                    href={product.url}
+                    href={product.originalUrl}
                     target="_blank"
                     rel="nofollow noopener sponsored"
                     className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg bg-teal-600 px-4 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-teal-700 active:scale-[0.98]"
